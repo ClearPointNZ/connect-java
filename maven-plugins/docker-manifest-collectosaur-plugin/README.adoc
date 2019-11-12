@@ -1,4 +1,358 @@
-= The Collectosaur
+= Docker-Manifest-Collectosaur-Plugin
 
-This set of Maven tasks is designed to aid primarily Maven driven monorepo based microservice pipeline development.
-It expects that
+`Babyosaur` helps you to create a manifest for a single project.
+`Mamasaur` is a tool that helps you to create a manifest of a reactor project by aggregating all the manifest files from child modules.
+
+What it does:
+
+* integrated manifest files generation in your maven build
+* automatic docker image re-tag process
+
+== Quick Start (Draft) ==
+
+This example shows how to build a manifest of a multi-module project with `Babyosaur` and `Mamaosaur`.
+
+The **Maven** project is set up with a parent POM ([`pom.xml`](pom.xml)), and the module POMs ([`module-1/pom.xml`](module-1/pom.xml) and [`module-2/pom.xml`](module-2/pom.xml)) defines the build configuration specific to that module.
+
+----
+project-foo
+  +- pom.xml (This is your parent pom.)
+  +- module-1
+  |    +- pom.xml (This is your module pom for the module-1 etc.)
+  |    +- ...
+  +- module-2
+  |    +- pom.xml
+  |    +- ...
+  +- extra1.json
+  +- ...
+  +- target
+  |    +- connect-manifest.json
+----
+
+=== Setup ===
+
+`Babysaur` plugin declarations are defined inside the module POMs' build:
+
+[source,xml]
+----
+<execution>
+    <id>babysaur</id>
+    <phase>compile</phase>
+    <goals>
+        <goal>babysaur</goal>
+    </goals>
+    <configuration>
+        <baseImageName>[Docker Image Name]</baseImageName>
+    </configuration>
+</execution>
+----
+
+A `Mamaosaur` plugin declaration is defined in the parent POM's build:
+
+[source,xml]
+----
+<execution>
+    <id>mamasaur</id>
+    <phase>compile</phase>
+    <goals>
+        <goal>mamasaur</goal>
+    </goals>
+    <configuration>
+        <additionalManifests>
+            <additionalManifest>extra1.json</additionalManifest>
+            <additionalManifest>extra2.json</additionalManifest>
+        </additionalManifests>
+    </configuration>
+</execution>
+----
+
+=== Build the project ===
+
+[source,sh]
+----
+mvn compile
+----
+
+When Maven **compile** phase is executed, Maven first builds all of the submodule POMs, Maven then locates all of the manifest files and copies all of these meta into a file named **connect-manifest.json** under the build folder.
+
+An exmaple of generated manifest yaml file looks like this:
+
+[source,yaml]
+----
+service1:
+  image:
+    prefix: 'blah/service1'
+    tag: '1.0'
+service2:
+  image:
+    prefix: 'blah/service2'
+    tag: '1.0'
+----
+
+There are a few caveats:
+
+1 The mamasaur goal depends on babayosaur. mamaosaur bound to the package phase?
+
+== Goal: Diffosaur
+
+This goal will output three files - diffosaur.txt|sh|bat that can then be used to pass to Maven so it will only build the artefacts that have changed (using `-pl`).
+
+See extended configuration section below for a list of configuration parameters.
+
+To use this plugin declare the plugin:
+
+[source,xml]
+----
+<plugin>
+    <groupId>cd.connect.pipeline</groupId>
+    <artifactId>docker-manifest-collectosaur-plugin</artifactId>
+    <version>1.3</version>
+    <executions>
+        <execution>
+            <id>diffosaur</id>
+            <phase>initialize</phase>
+            <goals>
+                <goal>diffosaur</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+----
+
+== Goal:Deployosaur
+
+This goal merges current build data with previous deploy manifest if we are not on a special branch - GoldenBranch.
+
+This step requires docker login. make registry public or use
+
+This goal is designed to take the input of the build and:
+
+* output a yaml manifest file for `helm` for this deployment container
+* output a docker manifest json file that can be attached as metadata for the next phase (a) if this container works
+* If `buildNumber` and `deployContainerTagOutputFile` are defined, output a file which we write the tag name that was used.
+This allows us to pass it onto the Retagosaur.
+* write system properties: [$collectorsaurmanifest, $collectorsaurBranch, $collectorsaurSha, $collectorsaurTimestamp]
+
+See extended configuration section below for a list of configuration parameters.
+
+To use this plugin declare the plugin:
+[source,xml]
+----
+<plugin>
+    <groupId>cd.connect.pipeline</groupId>
+    <artifactId>docker-manifest-collectosaur-plugin</artifactId>
+    <version>@project.version@</version>
+    <executions>
+        <execution>
+            <id>collect</id>
+            <phase>compile</phase>
+            <goals>
+                <goal>deployasaur</goal>
+            </goals>
+            <configuration>
+                <dockerRegistry>gcr.io</dockerRegistry>
+                <deployContainerImageName>featurehub/test-container</deployContainerImageName>
+                <dockerRegistryBearerToken>@../../../docker-bearer-token.txt</dockerRegistryBearerToken>
+                <targetEnvironment>ci</targetEnvironment>
+                <inputManifestFile>target/connect-manifest.json</inputManifestFile>
+                <outputYamlManifestFile>src/main/resources/manifest.yaml</outputYamlManifestFile>
+                <outputJsonManifestFile>src/main/resources/manifest.json</outputJsonManifestFile>
+                <pullRequest>My PR</pullRequest>
+                <sha>12345</sha>
+                <branch>monsters</branch>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+----
+
+=== Docker Tag Template
+
+[timestamp.build.project-env.cluster.deploy.timestamp]
+
+Our build tags for the deploy container look like this:
+
+`1540501501119.7`
+
+when they succeed they look like this:
+
+`1540501501119.7.ci.nonprod.deploy.1540502359372.final.mergeSha`
+
+(where `mergeSha` is the sha returned from the repository when something is merged.
+
+`1540501501119.7.ci.nonprod.deploy.1540502359372`
+
+(where the mergeSha is not provided, this is the tag of the promotable deployment image)
+
+== Goal:Retagosaur
+This goal will retag an existing tag, copying the manifest over. It is used once all of the e2e tests pass
+and we are ready for an environment to be tagged.
+
+It can be used one of two ways
+
+.. using a mergeSha, which will add a new manifest with that sha so
+it can be found by display tools (like the Connect Dashboard) to track back exactly where in the history it was
+merged/squashed/rebased.
+.. without a merge sha, which will cause it to create a .deploy.TIMESTAMP manifest which is intended for
+the e2e run to indicate this is a "golden image".
+
+[source, xml]
+----
+<execution>
+    <id>retagosaur</id>
+    <phase>package</phase>
+    <goals>
+        <goal>retagosaur</goal>
+    </goals>
+    <configuration>
+        <dockerRegistry>${dockerRegistry}</dockerRegistry>
+        <deployContainerImageName>${projectId}/${deployContainerImageName}</deployContainerImageName>
+        <deployContainerTag>@deployContainerTag</deployContainerTag>
+        <dockerRegistryBearerToken>../docker-bearer-token.txt</dockerRegistryBearerToken>
+        <targetCluster>${targetCluster}</targetCluster>
+        <targetNamespace>${targetNamespace}</targetNamespace>
+        <mergeSha>12345</mergeSha>
+    </configuration>
+</execution>
+----
+
+== Extended Usage ==
+
+The notation below shows the plugin configuration property name followed by the settings configuration property in parentheses.
+
+=== Babysaur
+
+* `baseImageName`
+** The base image name
+
+* `fullImageName`
+** The full image name
+
+* `serviceName`
+** The service name
+
+* `extras`
+** Additional information; for example, you can write the same module under different names
+
+=== Mamasaur
+
+* `additionalManifests`
+** You can add additional manifest entries to the manifest file using this option.
+This will copy all entries within the JSON file to the manifest file
+
+An example of additionalManifests JSON file looks like this:
+
+[source,JSON]
+----
+[
+	{
+		"baseImageName": "module-golang-1",
+		"fullImageName": "blah/golang-1-2:2.0",
+		"serviceName": "golang-1"
+	}
+]
+----
+
+=== Diffosaur
+
+* `diffAgainst`
+** The branch to run diff against.
+Note: it doesnot fail when git failed
+** default: master
+
+* `pomLocation` (diffosaur.pomLocation)
+** Where the POM file is located in the module directory
+
+* `#outputFilePrefix#` (diffosaur.outputFilePrefix)
+** Name of the output file
+** default: "diffosaur"
+
+* `codeDirectoryPrefix` (diffosaur.codeDirectoryPrefix)
+** Specify the prefix for code directory
+** default: ""
+
+* `gitdiff` (diffosaur.gitDiff)
+** The git diff command
+** default: "git diff --name-only ..$diffAgainst"
+
+=== Core Configuration for Containerization
+
+Deployosaur and Retagosaur plugins both support several configuration options for containerization.
+
+* `inputManifestFile`
+** The location of the `connect-manifest` file ?
+
+* `outputYamlManifestFile`
+** The yaml manifest file for `helm`
+
+* `outputJsonManfiestFile`
+** The docker manifest json file
+
+* `dockerRegistryBearerToken`
+** The bear token used for pushing/pulling private registries
+
+* `targetNamespace`
+** The target namespace value
+
+* `dockerRegistry`
+** The docker registry where images will be stored
+
+* `targetCluster`
+** The target cluster value
+
+* `deployContainerImageName`
+** The container image name
+
+=== Deployosaur
+
+Configuration parameters:
+
+* `pullRequest`
+** Pull request information in the manifest file.
+
+* `sha`
+** Sha meta information
+
+* `branch`
+** Name of the branch
+
+* `buildNumber`
+** The build number that is used to generate Docker image tag
+
+* `goldenBranch`
+** A special branch that ignores previous builds.
+
+* `deployContainerTagOutputFile`
+** The deploy container tag output file name
+
+=== Retagosaur
+
+* `deployContainerTag`
+** The deploy container tag name or path to a file if it starts with `@`
+
+* `mergeSha`
+** The merge sha, which will add a new manifest with that sha so it can be found by display tools (like the Connect Dashboard) to track back exactly where in the history it was merged/squashed/rebased.
+
+== Note:
+
+=== Integration Testing
+
+You can use maven-invoker-plugin to invoke Maven and to run some Groovy tests.
+Tests are written under `it` folder.
+
+
+== License ==
+
+https://opensource.org/licenses/Apache-2.0[Apache License 2.0]
+
+== Community ==
+
+The main documentation for link:http://connect.cd[Connect] can be found at: link:http://docs.connect.cd[docs.connect.cd]
+
+'''
+image::http://website.clearpoint.co.nz/connect/connect-logo-on-white-border.png[]
+link:http://connect.cd[Connect] is a Continuous Delivery Platform that gathers best practice approaches for deploying working software into the cloud with confidence.
+
+The main documentation for link:http://connect.cd[Connect] can be found at link:http://docs.connect.cd[docs.connect.cd]
+
+Any queries on the link:http://connect.cd[Connect] platform can be sent to: connect@clearpoint.co.nz
