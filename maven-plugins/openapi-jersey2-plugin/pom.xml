@@ -4,7 +4,7 @@
 	<artifactId>connect-openapi-jersey2</artifactId>
 	<packaging>jar</packaging>
 	<name>connect-openapi-jersey2</name>
-	<version>4.11-SNAPSHOT</version>
+	<version>4.12-SNAPSHOT</version>
 
 	<description>
 		jersey2 generator from openapi 3.x spec files. Changing to openapitools dependencies.
