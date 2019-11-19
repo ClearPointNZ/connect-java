@@ -1,12 +1,13 @@
 = Docker-Manifest-Collectosaur-Plugin
 
-`Babyosaur` helps you to create a manifest for a single project.
-`Mamasaur` is a tool that helps you to create a manifest of a reactor project by aggregating all the manifest files from child modules.
-
-
 == Quick Start ==
 
 This example shows how to build a manifest of a multi-module project with `Babyosaur` and `Mamaosaur`.
+
+In this quick start, you will:
+
+** Use `Babyosaur` to create a manifest for a single module.
+** Use `Mamasaur` to aggregate all the manifest files from the child modules.
 
 The **Maven** project is set up with a parent POM ([`pom.xml`](pom.xml)), and the module POMs ([`module-1/pom.xml`](module-1/pom.xml) and [`module-2/pom.xml`](module-2/pom.xml)) defines the build configuration specific to that module.
 
@@ -35,35 +36,49 @@ project-foo
 
 [source,xml]
 ----
-<execution>
-    <id>babysaur</id>
-    <phase>compile</phase>
-    <goals>
-        <goal>babysaur</goal>
-    </goals>
-    <configuration>
-        <baseImageName>[Docker Image Name]</baseImageName>
-    </configuration>
-</execution>
+<plugin>
+    <groupId>cd.connect.pipeline</groupId>
+    <artifactId>docker-manifest-collectosaur-plugin</artifactId>
+    <version>@project.version@</version>
+    <executions>
+        <execution>
+            <id>babysaur</id>
+            <phase>compile</phase>
+            <goals>
+                <goal>babysaur</goal>
+            </goals>
+            <configuration>
+                <baseImageName>[Docker Image Name]</baseImageName>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
 ----
 
 A `Mamaosaur` plugin declaration is defined in the parent POM's build:
 
 [source,xml]
 ----
-<execution>
-    <id>mamasaur</id>
-    <phase>compile</phase>
-    <goals>
-        <goal>mamasaur</goal>
-    </goals>
-    <configuration>
-        <additionalManifests>
-            <additionalManifest>extra1.json</additionalManifest>
-            <additionalManifest>extra2.json</additionalManifest>
-        </additionalManifests>
-    </configuration>
-</execution>
+<plugin>
+    <groupId>cd.connect.pipeline</groupId>
+    <artifactId>docker-manifest-collectosaur-plugin</artifactId>
+    <version>@project.version@</version>
+    <executions>
+        <execution>
+            <id>mamasaur</id>
+            <phase>compile</phase>
+            <goals>
+                <goal>mamasaur</goal>
+            </goals>
+            <configuration>
+                <additionalManifests>
+                    <additionalManifest>extra1.json</additionalManifest>
+                    <additionalManifest>extra2.json</additionalManifest>
+                </additionalManifests>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
 ----
 
 === Build the project ===
@@ -75,7 +90,7 @@ mvn compile
 
 When Maven **compile** phase is executed, Maven first builds all of the submodule POMs, Maven then locates all of the manifest files and copies all of these meta into a file named **connect-manifest.json** under the build folder.
 
-An exmaple of generated manifest yaml file looks like this:
+An example of the generated manifest yaml file looks like this:
 
 [source,yaml]
 ----
@@ -90,81 +105,68 @@ service2:
 ----
 
 == Goal: Diffosaur
+`Diffosaur` is a tool that helps you to build a set of modules. Say for example, you only want to build the modules that have changes.
+This goal will output three files - diffosaur.txt|sh|bat, which contains a list of module names. This file then can then be used to pass to Maven so it will only build the artefacts that specified (using flag `-pl`).
 
-This goal will output three files - diffosaur.txt|sh|bat that can then be used to pass to Maven so it will only build the artefacts that have changed (using `-pl`).
-
-See extended configuration section below for a list of configuration parameters.
+See *extended configuration* section below for a comprehensive list of configuration options.
 
 To use this plugin declare the plugin:
 
 [source,xml]
 ----
-<plugin>
-    <groupId>cd.connect.pipeline</groupId>
-    <artifactId>docker-manifest-collectosaur-plugin</artifactId>
-    <version>1.3</version>
-    <executions>
-        <execution>
-            <id>diffosaur</id>
-            <phase>initialize</phase>
-            <goals>
-                <goal>diffosaur</goal>
-            </goals>
-        </execution>
-    </executions>
-</plugin>
+<execution>
+    <id>diffosaur</id>
+    <phase>initialize</phase>
+    <goals>
+        <goal>diffosaur</goal>
+    </goals>
+</execution>
 ----
 
 == Goal:Deployosaur
 
-This goal merges current build data with previous deploy manifest if we are not on a special branch - GoldenBranch.
+This goal merges current build data with manifest of previous deployments if we are not on a special branch - GoldenBranch.
 
 This goal is designed to take the input of the build and:
 
 * output a yaml manifest file for `helm` for this deployment container
-* output a docker manifest json file that can be attached as metadata for the next phase (a) if this container works
+* output a docker manifest JSON file that can be attached as metadata for the next phase (a) if this container works
 * If `buildNumber` and `deployContainerTagOutputFile` are defined, output a file which we write the tag name that was used.
 This allows us to pass it onto the Retagosaur.
 * write system properties: [$collectorsaurmanifest, $collectorsaurBranch, $collectorsaurSha, $collectorsaurTimestamp]
 
-See extended configuration section below for a list of configuration parameters.
+See *extended configuration* section below for a comprehensive list of configuration options.
 
 To use this plugin declare the plugin:
 [source,xml]
 ----
-<plugin>
-    <groupId>cd.connect.pipeline</groupId>
-    <artifactId>docker-manifest-collectosaur-plugin</artifactId>
-    <version>@project.version@</version>
-    <executions>
-        <execution>
-            <id>collect</id>
-            <phase>compile</phase>
-            <goals>
-                <goal>deployasaur</goal>
-            </goals>
-            <configuration>
-                <dockerRegistry>gcr.io</dockerRegistry>
-                <deployContainerImageName>featurehub/test-container</deployContainerImageName>
-                <dockerRegistryBearerToken>@../../../docker-bearer-token.txt</dockerRegistryBearerToken>
-                <targetEnvironment>ci</targetEnvironment>
-                <inputManifestFile>target/connect-manifest.json</inputManifestFile>
-                <outputYamlManifestFile>src/main/resources/manifest.yaml</outputYamlManifestFile>
-                <outputJsonManifestFile>src/main/resources/manifest.json</outputJsonManifestFile>
-                <pullRequest>My PR</pullRequest>
-                <sha>12345</sha>
-                <branch>monsters</branch>
-            </configuration>
-        </execution>
-    </executions>
-</plugin>
+<execution>
+    <id>collect</id>
+    <phase>compile</phase>
+    <goals>
+        <goal>deployasaur</goal>
+    </goals>
+    <configuration>
+        <dockerRegistry>gcr.io</dockerRegistry>
+        <deployContainerImageName>featurehub/test-container</deployContainerImageName>
+        <dockerRegistryBearerToken>@../../../docker-bearer-token.txt</dockerRegistryBearerToken>
+        <targetEnvironment>ci</targetEnvironment>
+        <inputManifestFile>target/connect-manifest.json</inputManifestFile>
+        <outputYamlManifestFile>src/main/resources/manifest.yaml</outputYamlManifestFile>
+        <outputJsonManifestFile>src/main/resources/manifest.json</outputJsonManifestFile>
+        <pullRequest>My PR</pullRequest>
+        <sha>12345</sha>
+        <branch>monsters</branch>
+    </configuration>
+</execution>
 ----
 
-=== Docker Tag Template
+=== Docker Tag Format
 
-[timestamp.build.project-env.cluster.deploy.timestamp]
+Docker tag value is generated using following format:
+`timestamp.build.project-env.cluster.deploy.timestamp`
 
-Our build tags for the deploy container look like this:
+For example, our build tags for the deploy container look like this:
 
 `1540501501119.7`
 
@@ -210,7 +212,7 @@ the e2e run to indicate this is a "golden image".
 </execution>
 ----
 
-== Extended Usage ==
+== Extended Configuration ==
 
 The notation below shows the plugin configuration property name followed by the settings configuration property in parentheses.
 
@@ -226,13 +228,13 @@ The notation below shows the plugin configuration property name followed by the 
 ** The service name
 
 * `extras`
-** Additional information; for example, you can write the same module under different names
+** Use this option to specify additional information; for example, you can write the same module under different names
 
 === Mamasaur
 
 * `additionalManifests`
 ** You can add additional manifest entries to the manifest file using this option.
-This will copy all entries within the JSON file to the manifest file
+This will copy all entries within the specified JSON file(s) into the manifest file
 
 An example of additionalManifests JSON file looks like this:
 
@@ -250,12 +252,12 @@ An example of additionalManifests JSON file looks like this:
 === Diffosaur
 
 * `diffAgainst`
-** The branch to run diff against.
-Note: it doesnot fail when git failed
+** The branch to run `gitdiff` command against
+Note: it does not fail the build when the `gitdiff` process failed
 ** default: master
 
 * `pomLocation` (diffosaur.pomLocation)
-** Where the POM file is located in the module directory
+** Where the POM file is located
 
 * `outputFilePrefix` (diffosaur.outputFilePrefix)
 ** Name of the output file
@@ -280,25 +282,25 @@ Configuration parameters:
 ** The yaml manifest file for `helm`
 
 * `outputJsonManfiestFile`
-** The docker manifest json file
+** The docker manifest JSON file
 
 * `dockerRegistry`
-** The docker registry where images will be stored
+** The host name of the container registry (e.g. gcr.io)
 
 * `dockerRegistryBearerToken`
-** The bear token used for pushing/pulling private registries
+** The bear token used for authenticate API request to your private container registry.
 
 * `deployContainerImageName`
-** The container image name
+** Name of the image that you are going to push
 
 * `targetNamespace`
-** The target namespace value
+** The target namespace that you will deploy to
 
 * `targetCluster`
-** The target cluster value
+** The target cluster that you will deploy to
 
 * `pullRequest`
-** Pull request information in the manifest file.
+** Pull request information
 
 * `sha`
 ** Sha meta information
@@ -307,33 +309,33 @@ Configuration parameters:
 ** Name of the branch
 
 * `buildNumber`
-** The build number that is used to generate Docker image tag
+** The build number that is included as part of the image tag
 
 * `goldenBranch`
-** A special branch that ignores previous builds.
+** A special branch that ignores previous builds
 
 * `deployContainerTagOutputFile`
-** The deploy container tag output file name
+** A file that contains container tag output to make it available for sharing with the `Retagosaur`
 
 === Retagosaur
 
 * `dockerRegistry`
-** The docker registry where images will be stored
+** The host name of your container registry (e.g. gcr.io)
 
 * `dockerRegistryBearerToken`
-** The bear token used for pushing/pulling private registries
+** The bear token used for authenticate API request to your specified private container registry
 
 * `deployContainerImageName`
-** The container image name
+** The image name that is going to be re-tagged
 
 * `deployContainerTag`
-** The deploy container tag name or path to a file if it starts with `@`
+** The deploy container tag name, or a path to a file if it starts with `@`
 
 * `targetNamespace`
-** The target namespace value
+** The target namespace that you will deploy to
 
 * `targetCluster`
-** The target cluster value
+** The target cluster that you will deploy to
 
 * `mergeSha`
 ** The merge sha, which will add a new manifest with that sha so it can be found by display tools (like the Connect Dashboard) to track back exactly where in the history it was merged/squashed/rebased.
