@@ -3,12 +3,8 @@
 `Babyosaur` helps you to create a manifest for a single project.
 `Mamasaur` is a tool that helps you to create a manifest of a reactor project by aggregating all the manifest files from child modules.
 
-What it does:
 
-* integrated manifest files generation in your maven build
-* automatic docker image re-tag process
-
-== Quick Start (Draft) ==
+== Quick Start ==
 
 This example shows how to build a manifest of a multi-module project with `Babyosaur` and `Mamaosaur`.
 
@@ -31,7 +27,11 @@ project-foo
 
 === Setup ===
 
-`Babysaur` plugin declarations are defined inside the module POMs' build:
+`Babysaur` is declared inside the child module POMs' build. You can define:
+
+ ** baseImageName
+ ** fullImageName
+ ** serviceName
 
 [source,xml]
 ----
@@ -89,10 +89,6 @@ service2:
     tag: '1.0'
 ----
 
-There are a few caveats:
-
-1 The mamasaur goal depends on babayosaur. mamaosaur bound to the package phase?
-
 == Goal: Diffosaur
 
 This goal will output three files - diffosaur.txt|sh|bat that can then be used to pass to Maven so it will only build the artefacts that have changed (using `-pl`).
@@ -122,8 +118,6 @@ To use this plugin declare the plugin:
 == Goal:Deployosaur
 
 This goal merges current build data with previous deploy manifest if we are not on a special branch - GoldenBranch.
-
-This step requires docker login. make registry public or use
 
 This goal is designed to take the input of the build and:
 
@@ -263,7 +257,7 @@ Note: it doesnot fail when git failed
 * `pomLocation` (diffosaur.pomLocation)
 ** Where the POM file is located in the module directory
 
-* `#outputFilePrefix#` (diffosaur.outputFilePrefix)
+* `outputFilePrefix` (diffosaur.outputFilePrefix)
 ** Name of the output file
 ** default: "diffosaur"
 
@@ -275,12 +269,12 @@ Note: it doesnot fail when git failed
 ** The git diff command
 ** default: "git diff --name-only ..$diffAgainst"
 
-=== Core Configuration for Containerization
+=== Deployosaur
 
-Deployosaur and Retagosaur plugins both support several configuration options for containerization.
+Configuration parameters:
 
 * `inputManifestFile`
-** The location of the `connect-manifest` file ?
+** The location of the `connect-manifest` file
 
 * `outputYamlManifestFile`
 ** The yaml manifest file for `helm`
@@ -288,24 +282,20 @@ Deployosaur and Retagosaur plugins both support several configuration options fo
 * `outputJsonManfiestFile`
 ** The docker manifest json file
 
-* `dockerRegistryBearerToken`
-** The bear token used for pushing/pulling private registries
-
-* `targetNamespace`
-** The target namespace value
-
 * `dockerRegistry`
 ** The docker registry where images will be stored
 
-* `targetCluster`
-** The target cluster value
+* `dockerRegistryBearerToken`
+** The bear token used for pushing/pulling private registries
 
 * `deployContainerImageName`
 ** The container image name
 
-=== Deployosaur
+* `targetNamespace`
+** The target namespace value
 
-Configuration parameters:
+* `targetCluster`
+** The target cluster value
 
 * `pullRequest`
 ** Pull request information in the manifest file.
@@ -327,19 +317,26 @@ Configuration parameters:
 
 === Retagosaur
 
+* `dockerRegistry`
+** The docker registry where images will be stored
+
+* `dockerRegistryBearerToken`
+** The bear token used for pushing/pulling private registries
+
+* `deployContainerImageName`
+** The container image name
+
 * `deployContainerTag`
 ** The deploy container tag name or path to a file if it starts with `@`
 
+* `targetNamespace`
+** The target namespace value
+
+* `targetCluster`
+** The target cluster value
+
 * `mergeSha`
 ** The merge sha, which will add a new manifest with that sha so it can be found by display tools (like the Connect Dashboard) to track back exactly where in the history it was merged/squashed/rebased.
-
-== Note:
-
-=== Integration Testing
-
-You can use maven-invoker-plugin to invoke Maven and to run some Groovy tests.
-Tests are written under `it` folder.
-
 
 == License ==
 
