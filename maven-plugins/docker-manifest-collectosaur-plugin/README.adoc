@@ -125,7 +125,7 @@ To use this plugin declare the plugin:
 
 == Goal:Deployosaur
 
-This goal merges current build data with manifest of previous deployments if we are not on a special branch, known as the 'golden branch' - which by default is "master".
+This goal merges current build data with manifest of previous deployments if we are not on a special branch, known as the 'golden branch' - which usually is "master".
 
 This goal is designed to take the input of the build and:
 
