@@ -2,7 +2,7 @@
 
 == Quick Start ==
 
-This example shows how to build a manifest of a multi-module project with `Babyosaur` and `Mamaosaur`.
+This example shows how to build a manifest of a reactor project with `Babyosaur` and `Mamaosaur`.
 
 In this quick start, you will:
 
@@ -43,7 +43,7 @@ project-foo
     <executions>
         <execution>
             <id>babysaur</id>
-            <phase>compile</phase>
+            <phase>package</phase>
             <goals>
                 <goal>babysaur</goal>
             </goals>
@@ -66,7 +66,7 @@ A `Mamaosaur` plugin declaration is defined in the parent POM's build:
     <executions>
         <execution>
             <id>mamasaur</id>
-            <phase>compile</phase>
+            <phase>package</phase>
             <goals>
                 <goal>mamasaur</goal>
             </goals>
@@ -85,10 +85,10 @@ A `Mamaosaur` plugin declaration is defined in the parent POM's build:
 
 [source,sh]
 ----
-mvn compile
+mvn package
 ----
 
-When Maven **compile** phase is executed, Maven first builds all of the submodule POMs, Maven then locates all of the manifest files and copies all of these meta into a file named **connect-manifest.json** under the build folder.
+When Maven **package** phase is executed, Maven first builds all of the submodule POMs, Maven then locates all of the manifest files and copies all of these meta into a file named **connect-manifest.json** under the build folder.
 
 An example of the generated manifest yaml file looks like this:
 
@@ -125,7 +125,7 @@ To use this plugin declare the plugin:
 
 == Goal:Deployosaur
 
-This goal merges current build data with manifest of previous deployments if we are not on a special branch - GoldenBranch.
+This goal merges current build data with manifest of previous deployments if we are not on a special branch, known as the 'golden branch' - which by default is "master".
 
 This goal is designed to take the input of the build and:
 
