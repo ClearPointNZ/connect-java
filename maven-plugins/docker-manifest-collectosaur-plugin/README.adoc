@@ -28,7 +28,7 @@ project-foo
 
 === Setup ===
 
-`Babysaur` is declared inside the child module POMs' build. You can define:
+`Babysaur` is declared inside child module POMs' build. You can define:
 
  ** baseImageName
  ** fullImageName
@@ -88,9 +88,9 @@ A `Mamaosaur` plugin declaration is defined in the parent POM's build:
 mvn package
 ----
 
-When Maven **package** phase is executed, Maven first builds all of the submodule POMs, Maven then locates all of the manifest files and copies all of these meta into a file named **connect-manifest.json** under the build folder.
+When Maven **package** phase is executed, Maven first builds all of the submodule POMs, Maven then locates all of the submodule manifest files and copies all of these meta into a file named **connect-manifest.json** under the build folder.
 
-An example of the generated manifest yaml file looks like this:
+An example of **connect-manifest.json** looks like this:
 
 [source,yaml]
 ----
@@ -105,8 +105,8 @@ service2:
 ----
 
 == Goal: Diffosaur
-`Diffosaur` is a tool that helps you to build a set of modules. Say for example, you only want to build the modules that have changes.
-This goal will output three files - diffosaur.txt|sh|bat, which contains a list of module names. This file then can then be used to pass to Maven so it will only build the artefacts that specified (using flag `-pl`).
+`Diffosaur` is a tool that helps you to build a set of modules. Say for example, you want to build only changed module.
+This goal will output three files - diffosaur.txt|sh|bat, that contains names of changed module. Then this file can then be used to pass to Maven so it will only build the modules that specified (using flag `-pl`).
 
 See *extended configuration* section below for a comprehensive list of configuration options.
 
@@ -233,10 +233,10 @@ The notation below shows the plugin configuration property name followed by the 
 === Mamasaur
 
 * `additionalManifests`
-** You can add additional manifest entries to the manifest file using this option.
-This will copy all entries within the specified JSON file(s) into the manifest file
+** You can add additional manifest entries to connect-manifest.json using this option.
+This will copy all entries in the file(s) into the manifest file
 
-An example of additionalManifests JSON file looks like this:
+An example of the additionalManifests JSON file looks like this:
 
 [source,JSON]
 ----
@@ -253,22 +253,22 @@ An example of additionalManifests JSON file looks like this:
 
 * `diffAgainst`
 ** The branch to run `gitdiff` command against
-Note: it does not fail the build when the `gitdiff` process failed
+Note: it does not stop the build when the `gitdiff` command fails.
 ** default: master
 
 * `pomLocation` (diffosaur.pomLocation)
-** Where the POM file is located
+** Specifies location to the POM file inside the project. It will use 'pom.xml' if no value is given.
 
 * `outputFilePrefix` (diffosaur.outputFilePrefix)
-** Name of the output file
+** Output file name
 ** default: "diffosaur"
 
 * `codeDirectoryPrefix` (diffosaur.codeDirectoryPrefix)
-** Specify the prefix for code directory
+** Specifies the path prefix to remove from the source path when extracting module name from the diff command output
 ** default: ""
 
 * `gitdiff` (diffosaur.gitDiff)
-** The git diff command
+** The actual diff command
 ** default: "git diff --name-only ..$diffAgainst"
 
 === Deployosaur
@@ -276,7 +276,7 @@ Note: it does not fail the build when the `gitdiff` process failed
 Configuration parameters:
 
 * `inputManifestFile`
-** The location of the `connect-manifest` file
+** Locate the `connect-manifest.json` file
 
 * `outputYamlManifestFile`
 ** The yaml manifest file for `helm`
@@ -285,31 +285,31 @@ Configuration parameters:
 ** The docker manifest JSON file
 
 * `dockerRegistry`
-** The host name of the container registry (e.g. gcr.io)
+** The docker container registry (e.g. gcr.io/[PROJECT-ID])
 
 * `dockerRegistryBearerToken`
-** The bear token used for authenticate API request to your private container registry.
+** The bear token used for authenticate API request to secure Docker API endpoints
 
 * `deployContainerImageName`
-** Name of the image that you are going to push
+** Name of the container image. This is used for looking for the latest image tag. Do not specify tag or digest.
 
 * `targetNamespace`
-** The target namespace that you will deploy to
+** The target Kubernetes namespace
 
 * `targetCluster`
-** The target cluster that you will deploy to
+** The target Kubernetes cluster
 
 * `pullRequest`
-** Pull request information
+** Pull request information in Docker manifest
 
 * `sha`
-** Sha meta information
+** Sha meta information in Docker manifest
 
 * `branch`
-** Name of the branch
+** Name of the branch in Docker manifest
 
 * `buildNumber`
-** The build number that is included as part of the image tag
+** Combine with automatic generated collectosaurTimestamp to generate the docker image tag
 
 * `goldenBranch`
 ** A special branch that ignores previous builds
@@ -320,10 +320,10 @@ Configuration parameters:
 === Retagosaur
 
 * `dockerRegistry`
-** The host name of your container registry (e.g. gcr.io)
+** The docker container registry (e.g. gcr.io/[PROJECT-ID])
 
 * `dockerRegistryBearerToken`
-** The bear token used for authenticate API request to your specified private container registry
+** The bear token used for authenticate API request to secure Docker API endpoints
 
 * `deployContainerImageName`
 ** The image name that is going to be re-tagged
@@ -332,10 +332,10 @@ Configuration parameters:
 ** The deploy container tag name, or a path to a file if it starts with `@`
 
 * `targetNamespace`
-** The target namespace that you will deploy to
+** The target Kubernetes namespace
 
 * `targetCluster`
-** The target cluster that you will deploy to
+** The target Kubernetes cluster
 
 * `mergeSha`
 ** The merge sha, which will add a new manifest with that sha so it can be found by display tools (like the Connect Dashboard) to track back exactly where in the history it was merged/squashed/rebased.
