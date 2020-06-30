@@ -1,11 +1,10 @@
 package cd.connect.openapi;
 
 
-import com.google.common.io.CharSource;
-import com.google.common.io.Files;
 import com.google.googlejavaformat.java.Formatter;
 import com.google.googlejavaformat.java.FormatterException;
 import com.google.googlejavaformat.java.JavaFormatterOptions;
+import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -25,7 +24,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +39,7 @@ public class Jersey2V3ApiGenerator extends AbstractJavaJAXRSServerCodegen implem
   private static final String SERVICE_ADDRESS = "serviceAddress";
   private static final String SERVICE_NAME = "serviceName";
   private static final String SERVICE_PORT = "servicePort";
+  private static final String SERVICE_DEFAULT_URL = "serviceDefaultUrl";
 
   public Jersey2V3ApiGenerator() {
     super();
@@ -89,6 +88,14 @@ public class Jersey2V3ApiGenerator extends AbstractJavaJAXRSServerCodegen implem
 
   public String getHelp() {
     return "jersey2 api generator. generates all classes and interfaces with jax-rs annotations with jersey2 extensions as necessary";
+  }
+
+  @Override
+  public void preprocessOpenAPI(OpenAPI openAPI) {
+    super.preprocessOpenAPI(openAPI);
+    if(openAPI.getServers()!=null && openAPI.getServers().size()==1) {
+      additionalProperties.put(SERVICE_DEFAULT_URL, openAPI.getServers().get(0).getUrl());
+    }
   }
 
   // stoplight has a tendency to insert rubbish in the oas.json file
@@ -158,10 +165,15 @@ public class Jersey2V3ApiGenerator extends AbstractJavaJAXRSServerCodegen implem
 
   @Override
   public Map<String, Object> postProcessOperationsWithModels(Map<String, Object> objs, List<Object> allModels) {
+
+
     List<CodegenOperation> codegenOperations = getCodegenOperations(objs);
 
     if (codegenOperations.size() > 0) {
       objs.put("apiName", codegenOperations.get(0).baseName);
+    }
+    if(additionalProperties.containsKey(SERVICE_DEFAULT_URL)){
+      objs.put(SERVICE_DEFAULT_URL, additionalProperties.get(SERVICE_DEFAULT_URL));
     }
 
     for (CodegenOperation op : codegenOperations) {
