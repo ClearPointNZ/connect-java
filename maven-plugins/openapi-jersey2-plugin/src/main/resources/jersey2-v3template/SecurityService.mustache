@@ -38,7 +38,9 @@ import javax.ws.rs.*;
   @Path("/{{apiName}}")
   public interface {{classname}} {
 
-    public static String DEFAULT_SERVICE_URL = "{{serviceDefaultUrl}}";
+  {{#serviceDefaultUrl}}
+      public static String DEFAULT_SERVICE_URL = "{{{serviceDefaultUrl}}}";
+  {{/serviceDefaultUrl}}
 
   {{#operation}}
     /**
