@@ -36,7 +36,7 @@
 	</description>
 
 	<properties>
-		<jetty.version>9.4.12.v20180830</jetty.version>
+		<jetty.version>9.4.34.v20201102</jetty.version>
 	</properties>
 
 	<scm>
