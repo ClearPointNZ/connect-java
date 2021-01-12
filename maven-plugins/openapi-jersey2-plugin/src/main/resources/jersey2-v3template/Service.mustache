@@ -35,7 +35,7 @@ import javax.validation.constraints.*;
 {{#hasConsumes}}@Consumes({ {{#consumes}}"{{{mediaType}}}"{{^-last}}, {{/-last}}{{/consumes}} }){{/hasConsumes}}
 {{#hasProduces}}@Produces({ {{#produces}}"{{{mediaType}}}"{{^-last}}, {{/-last}}{{/produces}} }){{/hasProduces}}
 {{#operations}}
-@Path("/{{apiName}}")
+@Path("{{commonPath}}")
 public interface {{classname}} {
 
 
@@ -61,8 +61,8 @@ public interface {{classname}} {
    * @see <a href="{{url}}">{{summary}} Documentation</a>
    {{/externalDocs}}
    */
-  @{{httpMethod}}{{#subresourceOperation}}
-    @Path("{{path}}"){{/subresourceOperation}}{{#hasConsumes}}
+  @{{httpMethod}}
+    @Path("{{path}}"){{#hasConsumes}}
     @Consumes({ {{#consumes}}"{{{mediaType}}}"{{^-last}}, {{/-last}}{{/consumes}} }){{/hasConsumes}}{{#hasProduces}}
     @Produces({ {{#produces}}"{{{mediaType}}}"{{^-last}}, {{/-last}}{{/produces}} }){{/hasProduces}}
   {{#isDeprecated}}

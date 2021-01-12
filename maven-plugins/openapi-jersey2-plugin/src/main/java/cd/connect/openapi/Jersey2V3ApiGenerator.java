@@ -292,34 +292,7 @@ public class Jersey2V3ApiGenerator extends AbstractJavaJAXRSServerCodegen implem
 
   @Override
   public void addOperationToGroup(String tag, String resourcePath, Operation operation, CodegenOperation co, Map<String, List<CodegenOperation>> operations) {
-    String basePath = resourcePath;
-
-    // ensure all paths are relative -> /customer/get ==> customer/get
-    if (basePath.startsWith("/")) {
-      basePath = basePath.substring(1);
-    }
-
-    // extracts the base of the reference -> customer/get => basePath = customer
-    int pos = basePath.indexOf("/");
-    if (pos > 0) {
-      basePath = basePath.substring(0, pos);
-    }
-
-    // if the url is /customer originally, then basePath will be empty put it in the "default" group.
-    //
-    if (basePath.equals("")) {
-      basePath = additionalProperties.get(SERVICE_NAME) == null ? "default" : additionalProperties.get(SERVICE_NAME).toString();
-    } else {
-      if (co.path.startsWith("/" + basePath)) {
-        co.path = co.path.substring(("/" + basePath).length());
-      }
-      co.subresourceOperation = !co.path.isEmpty();
-    }
-
-    // we create a list we throw away???
-    List<CodegenOperation> opList = operations.computeIfAbsent(tag != null ? tag : basePath, k -> new ArrayList<CodegenOperation>());
-    opList.add(co);
-    co.baseName = basePath;
+    operations.computeIfAbsent(tag, k -> new ArrayList<>()).add(co);
   }
 
   private void addJersey2Client(String serviceName, String serviceAddress) {

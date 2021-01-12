@@ -35,7 +35,7 @@ import javax.ws.rs.*;
 {{#hasConsumes}}@Consumes({ {{#consumes}}"{{{mediaType}}}"{{^-last}}, {{/-last}}{{/consumes}} }){{/hasConsumes}}
 {{#hasProduces}}@Produces({ {{#produces}}"{{{mediaType}}}"{{^-last}}, {{/-last}}{{/produces}} }){{/hasProduces}}
 {{#operations}}
-  @Path("/{{apiName}}")
+  @Path("{{commonPath}}")
   public interface {{classname}} {
 
   {{#serviceDefaultUrl}}
@@ -60,8 +60,8 @@ import javax.ws.rs.*;
       * @see <a href="{{url}}">{{summary}} Documentation</a>
     {{/externalDocs}}
     */
-    @{{httpMethod}}{{#subresourceOperation}}
-    @Path("{{path}}"){{/subresourceOperation}}{{#hasConsumes}}
+    @{{httpMethod}}
+    @Path("{{path}}"){{#hasConsumes}}
     @Consumes({ {{#consumes}}"{{{mediaType}}}"{{^-last}}, {{/-last}}{{/consumes}} }){{/hasConsumes}}{{#hasProduces}}
     @Produces({ {{#produces}}"{{{mediaType}}}"{{^-last}}, {{/-last}}{{/produces}} }){{/hasProduces}}
     {{#isDeprecated}}
