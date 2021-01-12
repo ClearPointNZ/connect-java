@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.openapitools.codegen.utils.StringUtils.camelize;
@@ -40,6 +41,8 @@ public class Jersey2V3ApiGenerator extends AbstractJavaJAXRSServerCodegen implem
   private static final String SERVICE_NAME = "serviceName";
   private static final String SERVICE_PORT = "servicePort";
   private static final String SERVICE_DEFAULT_URL = "serviceDefaultUrl";
+  // if this is set, then we always use this as the base path if it exists in all of the paths in the set of operations
+  private static final String SERVICE_BASE = "serviceUrlBase";
 
   public Jersey2V3ApiGenerator() {
     super();
@@ -170,9 +173,25 @@ public class Jersey2V3ApiGenerator extends AbstractJavaJAXRSServerCodegen implem
 
     List<CodegenOperation> codegenOperations = getCodegenOperations(objs);
 
+    // we need to be able to prevent voracious common-pathing if APIs are scattered because Jersey
+    // can't find URLs that have the same common path offset with the @Path annotation at the top of
+    // the file
+    String baseUrlOverride = Optional.ofNullable(additionalProperties.get(SERVICE_BASE)).map(Object::toString).orElse(null);
+
+    if (baseUrlOverride != null && objs.containsKey("commonPath") && objs.get("commonPath").toString().startsWith(baseUrlOverride)) {
+      String commonPath = objs.get("commonPath").toString().substring(baseUrlOverride.length());
+
+      codegenOperations.forEach(co -> {
+        co.path = commonPath + co.path;
+      });
+
+      objs.put("commonPath", baseUrlOverride);
+    }
+
     if (codegenOperations.size() > 0) {
       objs.put("apiName", codegenOperations.get(0).baseName);
     }
+
     if(additionalProperties.containsKey(SERVICE_DEFAULT_URL)){
       objs.put(SERVICE_DEFAULT_URL, additionalProperties.get(SERVICE_DEFAULT_URL));
     }
@@ -240,7 +259,7 @@ public class Jersey2V3ApiGenerator extends AbstractJavaJAXRSServerCodegen implem
       }
     });
     imports.removeIf(Map::isEmpty);
-    models.stream().forEach(model -> {
+    models.forEach(model -> {
       CodegenModel m = (CodegenModel) model.get("model");
       modelNames.put(m.classname, m);
     });
@@ -310,7 +329,7 @@ public class Jersey2V3ApiGenerator extends AbstractJavaJAXRSServerCodegen implem
 
   @Override
   public String apiFilename(String templateName, String tag) {
-    String suffix = (String)this.apiTemplateFiles().get(templateName);
+    String suffix = this.apiTemplateFiles().get(templateName);
     String result = this.apiFileFolder() + '/' + this.toApiFilename(tag) + suffix;
     int ix;
     if (templateName.endsWith("Impl.mustache")) {

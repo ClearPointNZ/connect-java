@@ -17,6 +17,18 @@ public class SampleTest {
 //      "--api-package", "api",
 //      "--model-package", "model",
       "--output", "target/" + getClass().getSimpleName())
-      .toArray(new String[0])); }
+      .toArray(new String[0]));
+  }
+//  @Test
+//  public void runFHGenerator() {
+//    String location = "/Users/richard/projects/fh/featurehub/backend/mr-api/final.yaml";
+//    OpenAPIGenerator.main(Arrays.asList("generate",
+//      "--input-spec", location,
+//      "--generator-name", "jersey2-api",
+//      "--additional-properties", "server-delegate",
+//      "--additional-properties", "serviceUrlBase=/mr-api",
+//      "--output", "/Users/richard/projects/fh/featurehub/backend/mr-api/target/mr-api")
+//      .toArray(new String[0]));
+//  }
 
 }
