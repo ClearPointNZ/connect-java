@@ -11,7 +11,11 @@ The current authors of this repository are:
 
 == changes in 6.1
 
-In this version we swap to version 5.x of the OpenAPI generator. 
+In this version we 
+
+* swap to version 5.x of the OpenAPI generator.
+* allow you to skip generating the "copy" method by using an x-no-copy
+* fix the issue with produces and consumes using Lists instead of proper lists with "hasMore"
 
 == changes in 5.1
 

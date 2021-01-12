@@ -168,8 +168,6 @@ public class Jersey2V3ApiGenerator extends AbstractJavaJAXRSServerCodegen implem
 
   @Override
   public Map<String, Object> postProcessOperationsWithModels(Map<String, Object> objs, List<Object> allModels) {
-
-
     List<CodegenOperation> codegenOperations = getCodegenOperations(objs);
 
     if (codegenOperations.size() > 0) {
@@ -187,6 +185,16 @@ public class Jersey2V3ApiGenerator extends AbstractJavaJAXRSServerCodegen implem
       // are required.
       if ("Object".equals(op.returnBaseType)) {
         op.returnBaseType = "Response";
+      }
+
+      if (op.produces != null) {
+        int lastProducesHasNext = op.produces.size();
+        for (Map<String, String> produce : op.produces) {
+          lastProducesHasNext --;
+          if (lastProducesHasNext > 0) {
+            produce.put("hasMore", "true");
+          }
+        }
       }
 
       if (op.getHasQueryParams()) {

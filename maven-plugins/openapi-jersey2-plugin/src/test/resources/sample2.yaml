@@ -37,6 +37,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AeItemVO"
+        "207":
+          description: "upcoming events"
+          content:
+            test/csv:
+              schema:
+                type: string
   /api/v1/test2:
     put:
       operationId: getTest2
