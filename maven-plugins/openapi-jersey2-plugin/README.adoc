@@ -9,6 +9,10 @@ The current authors of this repository are:
 - _Irina Southwell (nee Капрельянц Ирина)_, Principal Engineer (https://www.linkedin.com/in/irina-southwell-9727a422/)
 - _Richard Vowles_, Software Developer (https://www.linkedin.com/in/richard-vowles-72035193/)
 
+== changes in 6.1
+
+In this version we swap to version 5.x of the OpenAPI generator. 
+
 == changes in 5.1
 
 This makes a major change to the way that grouping of APIs are done and honours the standard adopted in other

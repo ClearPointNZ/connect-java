@@ -4,7 +4,7 @@
 	<artifactId>connect-openapi-jersey2</artifactId>
 	<packaging>jar</packaging>
 	<name>connect-openapi-jersey2</name>
-	<version>5.5-SNAPSHOT</version>
+	<version>6.1-SNAPSHOT</version>
 
 	<description>
 		jersey2 generator from openapi 3.x spec files. Changing to openapitools dependencies.
@@ -35,7 +35,7 @@
 	</scm>
 
 	<properties>
-		<openapi-codegen-version>4.3.0</openapi-codegen-version>
+		<openapi-codegen-version>5.0.0</openapi-codegen-version>
 	</properties>
 
 	<prerequisites>
@@ -66,6 +66,12 @@
 			<version>${openapi-codegen-version}</version>
 			<scope>provided</scope>
 		</dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.1</version>
+      <scope>test</scope>
+    </dependency>
 	</dependencies>
 
 	<build>
