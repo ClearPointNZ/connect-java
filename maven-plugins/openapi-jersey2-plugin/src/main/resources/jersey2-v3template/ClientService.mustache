@@ -32,8 +32,8 @@ import javax.ws.rs.*;
 {{/useBeanValidation}}
 
 {{>generatedAnnotation}}
-{{#hasConsumes}}@Consumes({ {{#consumes}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/consumes}} }){{/hasConsumes}}
-{{#hasProduces}}@Produces({ {{#produces}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/produces}} }){{/hasProduces}}
+{{#hasConsumes}}@Consumes({ {{#consumes}}"{{{mediaType}}}"{{^-last}}, {{/-last}}{{/consumes}} }){{/hasConsumes}}
+{{#hasProduces}}@Produces({ {{#produces}}"{{{mediaType}}}"{{^-last}}, {{/-last}}{{/produces}} }){{/hasProduces}}
 {{#operations}}
   @Path("/{{apiName}}")
   public interface {{classname}}Client {
@@ -58,12 +58,12 @@ import javax.ws.rs.*;
     */
     @{{httpMethod}}{{#subresourceOperation}}
       @Path("{{path}}"){{/subresourceOperation}}{{#hasConsumes}}
-      @Consumes({ {{#consumes}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/consumes}} }){{/hasConsumes}}{{#hasProduces}}
-      @Produces({ {{#produces}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/produces}} }){{/hasProduces}}
+      @Consumes({ {{#consumes}}"{{{mediaType}}}"{{^-last}}, {{/-last}}{{/consumes}} }){{/hasConsumes}}{{#hasProduces}}
+      @Produces({ {{#produces}}"{{{mediaType}}}"{{^-last}}, {{/-last}}{{/produces}} }){{/hasProduces}}
     {{#isDeprecated}}
       @Deprecated
     {{/isDeprecated}}
-    public {{#returnType}}{{{returnType}}} {{/returnType}}{{^returnType}}Response {{/returnType}}{{operationId}}({{#allParams}}{{>queryParams}}{{>pathParams}}{{>bodyParams}}{{>formParams}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+    public {{#returnType}}{{{returnType}}} {{/returnType}}{{^returnType}}Response {{/returnType}}{{operationId}}({{#allParams}}{{>queryParams}}{{>pathParams}}{{>bodyParams}}{{>formParams}}{{^last}}, {{/last}}{{/allParams}});
 
     /**
     * {{summary}}
@@ -84,12 +84,12 @@ import javax.ws.rs.*;
     */
     @{{httpMethod}}{{#subresourceOperation}}
       @Path("{{path}}"){{/subresourceOperation}}{{#hasConsumes}}
-      @Consumes({ {{#consumes}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/consumes}} }){{/hasConsumes}}{{#hasProduces}}
-      @Produces({ {{#produces}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/produces}} }){{/hasProduces}}
+      @Consumes({ {{#consumes}}"{{{mediaType}}}"{{^-last}}, {{/-last}}{{/consumes}} }){{/hasConsumes}}{{#hasProduces}}
+      @Produces({ {{#produces}}"{{{mediaType}}}"{{^-last}}, {{/-last}}{{/produces}} }){{/hasProduces}}
     {{#isDeprecated}}
       @Deprecated
     {{/isDeprecated}}
-    public {{#returnType}}{{{returnType}}} {{/returnType}}{{^returnType}}Response {{/returnType}}{{operationId}}({{#allParams}}{{>queryParams}}{{>pathParams}}{{>bodyParams}}{{>formParams}}{{#hasMore}}, {{/hasMore}}{{/allParams}}{{#hasParams}}, {{/hasParams}}Map<String, String> extraHeaders);
+    public {{#returnType}}{{{returnType}}} {{/returnType}}{{^returnType}}Response {{/returnType}}{{operationId}}({{#allParams}}{{>queryParams}}{{>pathParams}}{{>bodyParams}}{{>formParams}}{{^-last}}, {{/-last}}{{/allParams}}{{#hasParams}}, {{/hasParams}}Map<String, String> extraHeaders);
 
 
     /**
@@ -112,7 +112,7 @@ import javax.ws.rs.*;
     {{#isDeprecated}}
       @Deprecated
     {{/isDeprecated}}
-    public ApiResponse<{{#vendorExtensions.x-java-is-response-void}}Void{{/vendorExtensions.x-java-is-response-void}}{{^vendorExtensions.x-java-is-response-void}}{{{returnType}}}{{/vendorExtensions.x-java-is-response-void}}> {{operationId}}WithHttpInfo({{#allParams}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}});
+    public ApiResponse<{{#vendorExtensions.x-java-is-response-void}}Void{{/vendorExtensions.x-java-is-response-void}}{{^vendorExtensions.x-java-is-response-void}}{{{returnType}}}{{/vendorExtensions.x-java-is-response-void}}> {{operationId}}WithHttpInfo({{#allParams}}{{{dataType}}} {{paramName}}{{^-last}}, {{/-last}}{{/allParams}});
   {{/operation}}
     }
 {{/operations}}

@@ -32,8 +32,8 @@ import javax.ws.rs.*;
 {{/useBeanValidation}}
 
 {{>generatedAnnotation}}
-{{#hasConsumes}}@Consumes({ {{#consumes}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/consumes}} }){{/hasConsumes}}
-{{#hasProduces}}@Produces({ {{#produces}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/produces}} }){{/hasProduces}}
+{{#hasConsumes}}@Consumes({ {{#consumes}}"{{{mediaType}}}"{{^-last}}, {{/-last}}{{/consumes}} }){{/hasConsumes}}
+{{#hasProduces}}@Produces({ {{#produces}}"{{{mediaType}}}"{{^-last}}, {{/-last}}{{/produces}} }){{/hasProduces}}
 {{#operations}}
   @Path("/{{apiName}}")
   public interface {{classname}} {
@@ -62,13 +62,13 @@ import javax.ws.rs.*;
     */
     @{{httpMethod}}{{#subresourceOperation}}
     @Path("{{path}}"){{/subresourceOperation}}{{#hasConsumes}}
-    @Consumes({ {{#consumes}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/consumes}} }){{/hasConsumes}}{{#hasProduces}}
-    @Produces({ {{#produces}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/produces}} }){{/hasProduces}}
+    @Consumes({ {{#consumes}}"{{{mediaType}}}"{{^-last}}, {{/-last}}{{/consumes}} }){{/hasConsumes}}{{#hasProduces}}
+    @Produces({ {{#produces}}"{{{mediaType}}}"{{^-last}}, {{/-last}}{{/produces}} }){{/hasProduces}}
     {{#isDeprecated}}
     @Deprecated
     {{/isDeprecated}}
     {{#vendorExtensions.x-java-annotations}}{{{.}}}{{/vendorExtensions.x-java-annotations}}
-    public {{#returnType}}{{{returnType}}} {{/returnType}}{{^returnType}}Response {{/returnType}}{{operationId}}({{#allParams}}{{>queryParams}}{{>pathParams}}{{>bodyParams}}{{>formParams}}{{#hasMore}}, {{/hasMore}}{{/allParams}}{{#authMethods}}{{#hasParams}}, {{/hasParams}}@Context SecurityContext securityContext{{/authMethods}});
+    public {{#returnType}}{{{returnType}}} {{/returnType}}{{^returnType}}Response {{/returnType}}{{operationId}}({{#allParams}}{{>queryParams}}{{>pathParams}}{{>bodyParams}}{{>formParams}}{{^-last}}, {{/-last}}{{/allParams}}{{#authMethods}}{{#hasParams}}, {{/hasParams}}@Context SecurityContext securityContext{{/authMethods}});
   {{/operation}}
   }
 {{/operations}}

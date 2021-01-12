@@ -7,6 +7,17 @@ paths:
   /api/v1/test:
     get:
       operationId: getTest
+      parameters:
+        - name: fred
+          schema:
+            type: number
+          required: false
+          in: query
+        - name: mary
+          schema:
+            type: date-time
+          required: false
+          in: query
       tags:
         - InheritanceService
       responses:
@@ -152,7 +163,27 @@ paths:
             application/yaml:
               schema:
                 $ref: "#/components/schemas/EventResponse"
-  /hello:
+  /hello/{id}/{id_hello}:
+    parameters:
+      - name: id
+        schema:
+          type: string
+        in: path
+        required: true
+      - name: id_hello
+        schema:
+          type: string
+        in: path
+      - name: fred
+        schema:
+          type: number
+        required: false
+        in: query
+      - name: mary
+        schema:
+          type: date-time
+        required: false
+        in: query
     get:
       tags:
         - TestService
