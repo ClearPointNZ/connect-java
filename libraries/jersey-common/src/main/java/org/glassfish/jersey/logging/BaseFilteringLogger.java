@@ -3,28 +3,35 @@ package org.glassfish.jersey.logging;
 import cd.connect.context.ConnectContext;
 import cd.connect.jersey.common.logging.JerseyFiltering;
 import cd.connect.jersey.common.logging.JerseyLoggerPoint;
+import com.google.common.base.Charsets;
+import com.google.common.io.BaseEncoding;
+import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.message.MessageUtils;
 
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.WriterInterceptor;
 import javax.ws.rs.ext.WriterInterceptorContext;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FilterOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Base for both client and server jersey tracing.
  */
 abstract class BaseFilteringLogger implements WriterInterceptor {
+
+    private final static String OBFUSCATED = "(OBFUSCATED)";
+
+    private final static Pattern PATTERN_AUTHORIZATION_HEADER = Pattern.compile("^([A-Za-z0-9]+)\\s+(.+)$");
+
+    private final static String AUTHORIZATION_HEADER_TYPE_BASIC = "basic";
 
 	@SuppressWarnings("NonConstantLogger")
 	final org.slf4j.Logger logger = JerseyLoggerPoint.logger;
@@ -43,7 +50,7 @@ abstract class BaseFilteringLogger implements WriterInterceptor {
     BaseFilteringLogger(JerseyFiltering jerseyFiltering) {
         this.jerseyFiltering = jerseyFiltering;
         this.verbosity = resolveVerbosity(jerseyFiltering.getVerbosity());
-        this.maxEntitySize = Math.max(0, jerseyFiltering.maxBodySize());;
+        this.maxEntitySize = Math.max(0, jerseyFiltering.maxBodySize());
     }
 
     private LoggingFeature.Verbosity resolveVerbosity(String verbosity) {
@@ -144,7 +151,11 @@ abstract class BaseFilteringLogger implements WriterInterceptor {
 			final String header = headerEntry.getKey();
 
 			if (val.size() == 1) {
-				prefixId(b, id).append(prefix).append(header).append(": ").append(val.get(0)).append("\n");
+				prefixId(b, id).append(prefix)
+                        .append(header)
+                        .append(": ")
+                        .append(mapHeaderValue(header, val.get(0)))
+                        .append("\n");
 			} else {
 				final StringBuilder sb = new StringBuilder();
 				boolean add = false;
@@ -153,12 +164,88 @@ abstract class BaseFilteringLogger implements WriterInterceptor {
 						sb.append(',');
 					}
 					add = true;
-					sb.append(s);
+					sb.append(mapHeaderValue(header, s));
 				}
-				prefixId(b, id).append(prefix).append(header).append(": ").append(sb.toString()).append("\n");
+				prefixId(b, id)
+                        .append(prefix)
+                        .append(header)
+                        .append(": ")
+                        .append(sb.toString())
+                        .append("\n");
 			}
 		}
 	}
+
+    /**
+     * <p>This allows for the values in the headers to not be logged if they are security-related.</p>
+     */
+
+	private Object mapHeaderValue(String header, Object value) {
+        if (null != value && StringUtils.equalsIgnoreCase(header, HttpHeaders.AUTHORIZATION)) {
+            Matcher matcher = PATTERN_AUTHORIZATION_HEADER.matcher(value.toString());
+
+            if (matcher.matches()) {
+                String type = matcher.group(1);
+                String typeLowerCase = type.toLowerCase();
+                String credentials = matcher.group(2);
+
+                if (typeLowerCase.equals(AUTHORIZATION_HEADER_TYPE_BASIC)) {
+                    return type + " " + mapBasicCredentials(credentials);
+                }
+
+                return type + " " + generalObfuscateCredentials(credentials);
+            }
+
+            return OBFUSCATED;
+        }
+
+        return value;
+    }
+
+    /**
+     * <p>This is used for username + password authentication.  This will unbundle the
+     * username + password and will just log the username portion for conveniences'
+     * sake.</p>
+     */
+
+    private String mapBasicCredentials(String value) {
+        try {
+            byte[] plainTextBytes;
+
+            try {
+                plainTextBytes = BaseEncoding.base64().decode(value);
+            }
+            catch (IllegalArgumentException iae) {
+                return "(CORRUPT-BASE64?)";
+            }
+
+            String plainText = new String(plainTextBytes, Charsets.UTF_8.name());
+            int colonIdx = plainText.indexOf(':');
+
+            if (-1 != colonIdx) {
+                String username = plainText.substring(0, colonIdx);
+                return username + ":" + OBFUSCATED;
+            }
+
+            return "(MALFORMED?)";
+        } catch (UnsupportedEncodingException uee) {
+            throw new IllegalStateException("the jvm must support utf-8", uee);
+        }
+    }
+
+    private String generalObfuscateCredentials(String value) {
+        value = StringUtils.trimToEmpty(value);
+
+        if (value.length() < 6) {
+            return OBFUSCATED;
+        }
+
+        if (value.length() < 12) {
+            return value.charAt(0) + ".." + OBFUSCATED;
+        }
+
+        return value.substring(0, 2) + ".." + OBFUSCATED + ".." + value.charAt(value.length() - 1);
+    }
 
 	Set<Map.Entry<String, List<String>>> getSortedHeaders(final Set<Map.Entry<String, List<String>>> headers) {
 		final TreeSet<Map.Entry<String, List<String>>> sortedHeaders = new TreeSet<Map.Entry<String, List<String>>>(COMPARATOR);
