@@ -2,30 +2,13 @@ package cd.connect.spring.jersey;
 
 
 import cd.connect.spring.jersey.log.JerseyFiltering;
-import com.bluetrainsoftware.prometheus.PrometheusFilter;
-import com.fasterxml.jackson.jaxrs.json.annotation.JSONP;
-import io.swagger.jaxrs.listing.ApiListingResource;
-import io.swagger.jaxrs.listing.SwaggerSerializers;
-import org.glassfish.jersey.CommonProperties;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.message.GZipEncoder;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
-import org.glassfish.jersey.server.wadl.internal.WadlResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
-import javax.ws.rs.core.Configurable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
-
-import static org.glassfish.jersey.servlet.ServletProperties.PROVIDER_WEB_APP;
 
 /**
  * You could do this monkeying around with creating lots of different spring beans and then registering your resources
