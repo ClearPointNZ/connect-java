@@ -43,7 +43,7 @@
 	</scm>
 
   <properties>
-	  <log4j.version>2.8.2</log4j.version>
+	  <log4j.version>[2.13.2]</log4j.version>
 	  <lmax.disruptor>3.3.6</lmax.disruptor>
   </properties>
 
@@ -68,7 +68,7 @@
 	  <dependency>
 		  <groupId>org.apache.logging.log4j</groupId>
 		  <artifactId>log4j-core</artifactId>
-		  <version>[${log4j.version}]</version>
+		  <version>[${log4j.version}</version>
 	  </dependency>
 	  <dependency>
 		  <groupId>org.apache.logging.log4j</groupId>
