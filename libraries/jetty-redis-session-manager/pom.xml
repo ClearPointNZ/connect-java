@@ -41,7 +41,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <version.io.opentracing-opentracing>0.30.0</version.io.opentracing-opentracing>
     <jedis.version>2.9.0</jedis.version>
-    <jetty.version>9.4.7.v20170914</jetty.version>
+    <jetty.version>9.4.34.v20201102</jetty.version>
   </properties>
 
   <dependencies>
